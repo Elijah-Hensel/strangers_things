@@ -82,6 +82,7 @@ const buildPostHTML = (post) => {
 };
 
 const renderAllPosts = async () => {
+  $("#my-posts").empty();
   $("#posts").empty();
   const data = await fetchAllPosts();
   authorPosts.forEach((post) => {
@@ -120,7 +121,7 @@ const addPostHTML = () => {
             <input type="text" class="form-control" id="new-post-price" placeholder="Item Price">
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="deliver">
+          <input class="form-check-input" type="checkbox" value="" checked="" id="deliver">
           <label class="form-check-label" for="deliver">
             Will Deliver?
           </label>
@@ -136,7 +137,12 @@ const postNewPost = async () => {
   const title = $("#new-post-title").val();
   const description = $("#new-post-description").val();
   const price = $("#new-post-price").val();
-  const willDeliver = $("#deliver").val();
+  let willDeliver = false;
+  if ($("#deliver").prop("checked")) {
+    willDeliver = true;
+  } else {
+    willDeliver = false;
+  }
   try {
     const response = await fetch(`${BASE_URL}/posts`, {
       method: "POST",
@@ -153,7 +159,9 @@ const postNewPost = async () => {
         },
       }),
     });
+    console.log(response);
     const data = await response.json();
+    console.log(data);
     localStorage.setItem("userID", data.data.post.author._id);
     return data;
   } catch (err) {
@@ -219,9 +227,14 @@ const patchFetch = async (postID) => {
   const description = $("#edit-post-description").val();
   const price = $("#edit-post-price").val();
   const location = $("#edit-post-location").val();
-  const willDeliver = $("#deliver").val();
+  let willDeliver = false;
+  if ($("#deliver").prop("checked")) {
+    willDeliver = true;
+  } else {
+    willDeliver = false;
+  }
   try {
-    const response = await fetch(`${BASE_URL}/posts/${postID}`, {
+    await fetch(`${BASE_URL}/posts/${postID}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -233,11 +246,10 @@ const patchFetch = async (postID) => {
           description: description,
           price: price,
           location: location,
-          willDeliver: willDeliver === "on" ? true : false,
+          willDeliver: willDeliver,
         },
       }),
     });
-    const data = response.json();
   } catch (err) {
     throw err;
   }
@@ -334,10 +346,10 @@ $("#my-posts").on("click", "#edit", async function () {
 });
 
 const addPostButtonListener = () => {
-  $(".new-post").on("submit", (event) => {
+  $(".new-post").on("submit", async (event) => {
     event.preventDefault();
-    postNewPost();
-    location.reload();
+    await postNewPost();
+    location.reload()
   });
 };
 
